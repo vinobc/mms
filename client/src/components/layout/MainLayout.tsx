@@ -38,6 +38,15 @@ interface MainLayoutProps {
   children: React.ReactNode;
 }
 
+// Define a common interface for all menu items with optional properties
+interface MenuItem {
+  text: string;
+  icon: React.ReactNode;
+  path: string;
+  requireAuth?: boolean;
+  adminOnly?: boolean;
+}
+
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileMenuAnchor, setProfileMenuAnchor] =
@@ -74,7 +83,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     setMobileOpen(false);
   };
 
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     {
       text: "Dashboard",
       icon: <DashboardIcon />,
@@ -96,7 +105,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   ];
 
   // Admin-only menu items
-  const adminMenuItems = [
+  const adminMenuItems: MenuItem[] = [
     {
       text: "Faculty Management",
       icon: <PeopleIcon />,
