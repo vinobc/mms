@@ -33,11 +33,19 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import amityLogo from "../../assets/amity_logo.png";
 
-
 const drawerWidth = 240;
 
 interface MainLayoutProps {
   children: React.ReactNode;
+}
+
+// Define a common interface for all menu items with optional properties
+interface MenuItem {
+  text: string;
+  icon: React.ReactNode;
+  path: string;
+  requireAuth?: boolean;
+  adminOnly?: boolean;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
@@ -76,7 +84,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     setMobileOpen(false);
   };
 
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     {
       text: "Dashboard",
       icon: <DashboardIcon />,
@@ -98,7 +106,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   ];
 
   // Admin-only menu items
-  const adminMenuItems = [
+  const adminMenuItems: MenuItem[] = [
     {
       text: "Faculty Management",
       icon: <PeopleIcon />,
@@ -118,24 +126,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const drawer = (
     <div>
-     {/*<Toolbar>
+      {/* <Toolbar>
         <Typography variant="h6" noWrap>
           MMS
-        </Typography> 
-      </Toolbar>*/}
-<Toolbar sx={{ display: "flex", justifyContent: "center", py: 1 }}>
-  <img 
-    src={amityLogo} 
-    alt="Amity University Logo" 
-    style={{ 
-      maxWidth: '100%', 
-      height: 'auto', 
-      maxHeight: '70px' 
-    }} 
-  />
-</Toolbar>
-
-
+        </Typography>
+      </Toolbar> */}
+      <Toolbar sx={{ display: "flex", justifyContent: "center", py: 1 }}>
+        <img
+          src={amityLogo}
+          alt="Amity University Logo"
+          style={{
+            maxWidth: "100%",
+            height: "auto",
+            maxHeight: "70px",
+          }}
+        />
+      </Toolbar>
       <Divider />
       <List>
         {filteredMenuItems.map((item) => (
@@ -200,22 +206,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           >
             <MenuIcon />
           </IconButton>
-         {/* <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          {/* <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Marks Management System
-          </Typography>*/}
-<Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-  <img 
-    src={amityLogo} 
-    alt="Amity University Logo" 
-    style={{ 
-      height: '40px', 
-      marginRight: '16px' 
-    }} 
-  />
-  <Typography variant="h6" noWrap component="div">
-    Marks Management System
-  </Typography>
-</Box>
+          </Typography> */}
+
+          <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
+            <img
+              src={amityLogo}
+              alt="Amity University Logo"
+              style={{
+                height: "40px",
+                marginRight: "16px",
+              }}
+            />
+            <Typography variant="h6" noWrap component="div">
+              Marks Management System
+            </Typography>
+          </Box>
 
           {isAuthenticated ? (
             <Box sx={{ display: "flex", alignItems: "center" }}>

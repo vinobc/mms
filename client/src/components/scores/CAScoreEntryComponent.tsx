@@ -21,16 +21,27 @@ import { CourseType } from "../../types";
 import { getComponentScale, convertCAScore } from "../../utils/scoreUtils";
 import ErrorBoundary from "./ErrorBoundary";
 
+interface QuestionPartScores {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  total: number;
+}
+
+interface StudentDetailedScore {
+  I: QuestionPartScores;
+  II: QuestionPartScores;
+  III: QuestionPartScores;
+  IV: QuestionPartScores;
+  V: QuestionPartScores;
+  outOf50: number;
+  outOf20: number;
+  [key: string]: QuestionPartScores | number; // Add string index signature
+}
+
 interface DetailedScore {
-  [studentId: string]: {
-    I: { a: number; b: number; c: number; d: number; total: number };
-    II: { a: number; b: number; c: number; d: number; total: number };
-    III: { a: number; b: number; c: number; d: number; total: number };
-    IV: { a: number; b: number; c: number; d: number; total: number };
-    V: { a: number; b: number; c: number; d: number; total: number };
-    outOf50: number;
-    outOf20: number;
-  };
+  [studentId: string]: StudentDetailedScore;
 }
 
 interface CAScoreEntryComponentProps {
@@ -149,26 +160,26 @@ export const CAScoreEntryComponent: React.FC<CAScoreEntryComponentProps> = ({
           outOf50: 0,
           outOf20: 0,
         };
-        studentScores[question] = {
-          ...studentScores[question],
-          [part]: numValue,
-        };
-        studentScores[question].total =
-          studentScores[question].a +
-          studentScores[question].b +
-          studentScores[question].c +
-          studentScores[question].d;
+
+        // Access the question object with the right type
+        const questionObj = studentScores[question] as QuestionPartScores;
+        questionObj[part] = numValue;
+        questionObj.total =
+          questionObj.a + questionObj.b + questionObj.c + questionObj.d;
+
+        // Update the total scores
         studentScores.outOf50 =
-          studentScores.I.total +
-          studentScores.II.total +
-          studentScores.III.total +
-          studentScores.IV.total +
-          studentScores.V.total;
+          (studentScores.I as QuestionPartScores).total +
+          (studentScores.II as QuestionPartScores).total +
+          (studentScores.III as QuestionPartScores).total +
+          (studentScores.IV as QuestionPartScores).total +
+          (studentScores.V as QuestionPartScores).total;
         studentScores.outOf20 = convertCAScore(
           studentScores.outOf50,
           courseType,
           componentName
         );
+
         const newScores = { ...prev, [studentId]: studentScores };
         onScoresChange(newScores);
         return newScores;
@@ -230,13 +241,7 @@ export const CAScoreEntryComponent: React.FC<CAScoreEntryComponentProps> = ({
           <TableBody>
             {(students || []).map((student, studentIndex) => {
               if (!student || !student._id) return null;
-              const questions: ("I" | "II" | "III" | "IV" | "V")[] = [
-                "I",
-                "II",
-                "III",
-                "IV",
-                "V",
-              ];
+              const questions = ["I", "II", "III", "IV", "V"] as const;
               return questions.map((questionNo, questionIndex) => {
                 const studentScore = scores[student._id] || {
                   I: { a: 0, b: 0, c: 0, d: 0, total: 0 },
@@ -269,7 +274,9 @@ export const CAScoreEntryComponent: React.FC<CAScoreEntryComponentProps> = ({
                     <TableCell align="center">
                       <TextField
                         type="number"
-                        value={studentScore[questionNo].a}
+                        value={
+                          (studentScore[questionNo] as QuestionPartScores).a
+                        }
                         onChange={(e) =>
                           handleScoreChange(
                             student._id,
@@ -286,7 +293,9 @@ export const CAScoreEntryComponent: React.FC<CAScoreEntryComponentProps> = ({
                     <TableCell align="center">
                       <TextField
                         type="number"
-                        value={studentScore[questionNo].b}
+                        value={
+                          (studentScore[questionNo] as QuestionPartScores).b
+                        }
                         onChange={(e) =>
                           handleScoreChange(
                             student._id,
@@ -303,7 +312,9 @@ export const CAScoreEntryComponent: React.FC<CAScoreEntryComponentProps> = ({
                     <TableCell align="center">
                       <TextField
                         type="number"
-                        value={studentScore[questionNo].c}
+                        value={
+                          (studentScore[questionNo] as QuestionPartScores).c
+                        }
                         onChange={(e) =>
                           handleScoreChange(
                             student._id,
@@ -320,7 +331,9 @@ export const CAScoreEntryComponent: React.FC<CAScoreEntryComponentProps> = ({
                     <TableCell align="center">
                       <TextField
                         type="number"
-                        value={studentScore[questionNo].d}
+                        value={
+                          (studentScore[questionNo] as QuestionPartScores).d
+                        }
                         onChange={(e) =>
                           handleScoreChange(
                             student._id,
@@ -335,7 +348,7 @@ export const CAScoreEntryComponent: React.FC<CAScoreEntryComponentProps> = ({
                       />
                     </TableCell>
                     <TableCell align="center">
-                      {studentScore[questionNo].total}
+                      {(studentScore[questionNo] as QuestionPartScores).total}
                     </TableCell>
                     {questionIndex === 4 && (
                       <>
@@ -353,7 +366,7 @@ export const CAScoreEntryComponent: React.FC<CAScoreEntryComponentProps> = ({
                           {scaledScore}
                         </TableCell>
                         <TableCell rowSpan={5}>
-                          {numberToWords(scaledScore)}
+                          {numberToWords(scaledScore as number)}
                         </TableCell>
                       </>
                     )}

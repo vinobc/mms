@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable prefer-const */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // components/scores/DynamicScoreEntry.tsx
 import React, { useState, useEffect } from "react";
@@ -53,25 +53,38 @@ interface DynamicScoreEntryProps {
   onSaveComplete?: () => void;
 }
 
+interface QuestionPartScores {
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  total: number;
+}
+
+interface StudentDetailedScore {
+  I: QuestionPartScores;
+  II: QuestionPartScores;
+  III: QuestionPartScores;
+  IV: QuestionPartScores;
+  V: QuestionPartScores;
+  outOf50: number;
+  outOf20: number;
+  [key: string]: QuestionPartScores | number; // Add string index signature
+}
+
 interface DetailedScore {
-  [studentId: string]: {
-    I: { a: number; b: number; c: number; d: number; total: number };
-    II: { a: number; b: number; c: number; d: number; total: number };
-    III: { a: number; b: number; c: number; d: number; total: number };
-    IV: { a: number; b: number; c: number; d: number; total: number };
-    V: { a: number; b: number; c: number; d: number; total: number };
-    outOf50: number;
-    outOf20: number;
-  };
+  [studentId: string]: StudentDetailedScore;
+}
+
+interface LabSession {
+  date: string;
+  maxMarks: number;
+  obtainedMarks: number;
 }
 
 interface LabScore {
   componentName: string;
-  sessions: {
-    date: string;
-    maxMarks: number;
-    obtainedMarks: number;
-  }[];
+  sessions: LabSession[];
   maxMarks: number;
   totalObtained: number;
 }
@@ -81,6 +94,10 @@ interface AssignmentScore {
   maxMarks: number;
   obtainedMarks: number;
 }
+
+// Define question keys as a type
+type QuestionKey = "I" | "II" | "III" | "IV" | "V";
+const questionKeys: QuestionKey[] = ["I", "II", "III", "IV", "V"];
 
 const DynamicScoreEntry: React.FC<DynamicScoreEntryProps> = ({
   course,
@@ -147,7 +164,7 @@ const DynamicScoreEntry: React.FC<DynamicScoreEntryProps> = ({
                 }
 
                 // Initialize student CA score structure
-                const studentCAScore = {
+                const studentCAScore: StudentDetailedScore = {
                   I: { a: 0, b: 0, c: 0, d: 0, total: 0 },
                   II: { a: 0, b: 0, c: 0, d: 0, total: 0 },
                   III: { a: 0, b: 0, c: 0, d: 0, total: 0 },
@@ -308,46 +325,60 @@ const DynamicScoreEntry: React.FC<DynamicScoreEntryProps> = ({
                   q.parts.forEach((part: any) => {
                     const partKey = String(part.partName).toLowerCase();
                     if (["a", "b", "c", "d"].includes(partKey)) {
-                      updatedCAScores[componentName][studentId][questionKey][
-                        partKey
-                      ] = Number(part.obtainedMarks) || 0;
+                      const typedQuestionKey = questionKey as QuestionKey;
+                      const studentScores =
+                        updatedCAScores[componentName][studentId];
+                      const questionScores = studentScores[
+                        typedQuestionKey
+                      ] as QuestionPartScores;
+
+                      // Type-safe way to set the part score
+                      (questionScores as any)[partKey] =
+                        Number(part.obtainedMarks) || 0;
                     }
                   });
 
                   // Recalculate total for this question
-                  updatedCAScores[componentName][studentId][questionKey].total =
-                    updatedCAScores[componentName][studentId][questionKey].a +
-                    updatedCAScores[componentName][studentId][questionKey].b +
-                    updatedCAScores[componentName][studentId][questionKey].c +
-                    updatedCAScores[componentName][studentId][questionKey].d;
+                  const typedQuestionKey = questionKey as QuestionKey;
+                  const studentScores =
+                    updatedCAScores[componentName][studentId];
+                  const questionScores = studentScores[
+                    typedQuestionKey
+                  ] as QuestionPartScores;
+                  questionScores.total =
+                    questionScores.a +
+                    questionScores.b +
+                    questionScores.c +
+                    questionScores.d;
                 });
 
                 // Calculate overall outOf50 score as sum of all question totals
+                const studentScores = updatedCAScores[componentName][studentId];
                 const totalI =
-                  updatedCAScores[componentName][studentId].I.total || 0;
+                  (studentScores.I as QuestionPartScores).total || 0;
                 const totalII =
-                  updatedCAScores[componentName][studentId].II.total || 0;
+                  (studentScores.II as QuestionPartScores).total || 0;
                 const totalIII =
-                  updatedCAScores[componentName][studentId].III.total || 0;
+                  (studentScores.III as QuestionPartScores).total || 0;
                 const totalIV =
-                  updatedCAScores[componentName][studentId].IV.total || 0;
+                  (studentScores.IV as QuestionPartScores).total || 0;
                 const totalV =
-                  updatedCAScores[componentName][studentId].V.total || 0;
+                  (studentScores.V as QuestionPartScores).total || 0;
 
                 const calculatedTotal =
                   totalI + totalII + totalIII + totalIV + totalV;
 
                 // Only update if we have detailed scores
                 if (calculatedTotal > 0) {
-                  updatedCAScores[componentName][studentId].outOf50 =
-                    calculatedTotal;
+                  studentScores.outOf50 = calculatedTotal;
 
                   // Apply conversion factor
                   const conversionFactor =
                     getComponentScale(course.type, componentName)
                       .conversionFactor || 0.4;
-                  updatedCAScores[componentName][studentId].outOf20 =
-                    Math.round(calculatedTotal * conversionFactor);
+                  studentScores.outOf20 = Math.round(
+                    calculatedTotal * conversionFactor
+                  );
                 }
               }
             );
@@ -493,11 +524,15 @@ const DynamicScoreEntry: React.FC<DynamicScoreEntryProps> = ({
         Object.keys(caScores).forEach((componentName) => {
           if (caScores[componentName] && caScores[componentName][student._id]) {
             const studentScore = caScores[componentName][student._id];
-            const questions: ConcatArray<any> = [];
+            const questions: any[] = [];
 
             // Process each question (I, II, III, IV, V) and its parts (a,b,c,d)
-            ["I", "II", "III", "IV", "V"].forEach((questionNum, idx) => {
-              if (studentScore[questionNum]) {
+            questionKeys.forEach((questionNum, idx) => {
+              const questionScores = studentScore[
+                questionNum
+              ] as QuestionPartScores;
+
+              if (questionScores) {
                 // Adjust question number based on component
                 // CA1: 1-5, CA2: 6-10, CA3: 11-15
                 let actualQuestionNumber = idx + 1;
@@ -515,22 +550,22 @@ const DynamicScoreEntry: React.FC<DynamicScoreEntryProps> = ({
                     {
                       partName: "a",
                       maxMarks: 5,
-                      obtainedMarks: studentScore[questionNum].a || 0,
+                      obtainedMarks: questionScores.a || 0,
                     },
                     {
                       partName: "b",
                       maxMarks: 5,
-                      obtainedMarks: studentScore[questionNum].b || 0,
+                      obtainedMarks: questionScores.b || 0,
                     },
                     {
                       partName: "c",
                       maxMarks: 5,
-                      obtainedMarks: studentScore[questionNum].c || 0,
+                      obtainedMarks: questionScores.c || 0,
                     },
                     {
                       partName: "d",
                       maxMarks: 5,
-                      obtainedMarks: studentScore[questionNum].d || 0,
+                      obtainedMarks: questionScores.d || 0,
                     },
                   ],
                 });
@@ -700,9 +735,9 @@ const DynamicScoreEntry: React.FC<DynamicScoreEntryProps> = ({
         );
         const caData = caScores[activeComponent]?.[student._id];
         if (caData) {
-          const order = ["I", "II", "III", "IV", "V"];
+          const order = ["I", "II", "III", "IV", "V"] as const;
           order.forEach((qKey) => {
-            const qData = caData[qKey];
+            const qData = caData[qKey] as QuestionPartScores;
             row.push(
               qData?.a ?? 0,
               qData?.b ?? 0,
@@ -717,7 +752,7 @@ const DynamicScoreEntry: React.FC<DynamicScoreEntryProps> = ({
           row.push(
             scaledScore,
             caData.outOf50 ?? 0,
-            numberToWords(scaledScore)
+            numberToWords(scaledScore as number)
           );
         } else {
           for (let i = 0; i < 28; i++) {
