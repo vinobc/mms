@@ -24,6 +24,7 @@ import {
   Email as EmailIcon,
 } from "@mui/icons-material";
 import { useAuth } from "../context/AuthContext";
+import amityLogo from "../assets/amity_logo.png";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -149,6 +150,17 @@ const LoginPage: React.FC = () => {
           alignItems: "center",
         }}
       >
+        <Box sx={{ mb: 4, textAlign: "center" }}>
+          <img
+            src={amityLogo}
+            alt="Amity University Logo"
+            style={{
+              maxWidth: "100%",
+              height: "auto",
+              maxHeight: "100px",
+            }}
+          />
+        </Box>
         <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
           <LockOutlinedIcon />
         </Avatar>
