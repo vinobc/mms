@@ -15,7 +15,13 @@ const app: Express = express();
 const port = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+//app.use(cors());
+// Update CORS configuration
+app.use(cors({
+  origin: '*', // For testing; in production you might want to limit this
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

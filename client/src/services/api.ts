@@ -1,7 +1,11 @@
 import axios from "axios";
 
 // Get the base URL from environment if available, otherwise use default
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+// const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+//const isProduction = window.location.hostname !== 'localhost';
+//const baseURL = isProduction ? '' : "http://localhost:3000";
+
+const baseURL = window.location.origin;
 
 console.log(`API is configured with base URL: ${baseURL}`);
 
