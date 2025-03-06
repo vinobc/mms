@@ -224,18 +224,8 @@ ADMIN_SECRET_KEY=admin_creation_key
 
 ## 👥 Contributors
 
-<<<<<<< HEAD
-- [Vinob Chander R]
-- [AUB]
+- Vinob Chander R, AUB
 
 ## 📄 License
 
-[MIT]
-=======
-- [Your Name]
-- [Team Member Names]
-
-## 📄 License
-
-[Your License Information]
->>>>>>> d15c903646d603af8bea804475027ddbe09528b3
+- # MIT
